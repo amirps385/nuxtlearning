@@ -17,7 +17,6 @@ export const useCartStore = defineStore('cart', {
       if (existing) {
         existing.quantity++
       } else {
-        // Ensuring price is a number
         this.cart.push({ ...product, quantity: 1, price: Number(product.price) })
       }
     },
@@ -40,6 +39,15 @@ export const useCartStore = defineStore('cart', {
 
     clearCart() {
       this.cart = []
+    },
+
+    // ✅ NEW METHOD — to initialize cart after login
+    setCart(items) {
+      this.cart = items.map(item => ({
+        ...item,
+        quantity: item.quantity || 1,
+        price: Number(item.price)
+      }))
     }
   }
 })

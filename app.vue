@@ -1,25 +1,22 @@
 <template>
-  <div>
-    <UApp>
-      <NuxtLayout>
-        <About /> <!-- This will always appear at the top of the page -->
-        <NuxtPage />
-        
-        <!-- Conditionally Render Components Based on the Route -->
-        <Carou v-if="isHomePage" />
-        <Featured v-if="isHomePage" />
-        <tempting v-if="isHomePage" />
-        <Products v-if="isHomePage" />
-      </NuxtLayout>
-    </UApp>
-  </div>
+  <UApp>
+    <NuxtLayout>
+      <NuxtPage :key="route.fullPath" />
+    </NuxtLayout>
+  </UApp>
 </template>
 
 <script setup>
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/store/auth'
 
-// Check if the current route is the home page
+// Reactive route reference (for layout/page switching if needed)
 const route = useRoute()
-const isHomePage = route.path === '/' // Adjust based on your home route, e.g., '/' or '/home'
+
+
+
+const auth = useAuthStore()
+auth.initialize()
+
 
 </script>

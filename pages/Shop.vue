@@ -12,8 +12,9 @@
     </div>
     <div v-else>
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-10">
-        <!-- Filter Sidebar (Now on the Left) -->
-        <div class="bg-white p-6 border border-gray-200 rounded-2xl shadow h-fit sticky top-6">
+        <!-- Filter Sidebar -->
+        <div class="bg-white p-6 border border-gray-200 rounded-2xl shadow h-fit lg:sticky lg:top-6">
+
           <h2 class="text-xl font-semibold text-gray-800 mb-4">Filters</h2>
 
           <!-- Category -->
@@ -54,14 +55,22 @@
           <div
             v-for="product in paginatedProducts"
             :key="product.id"
-            class="bg-white p-4 rounded-2xl border border-gray-200 shadow hover:shadow-lg transition-all flex flex-col"
+            class="flex flex-col bg-white p-4 rounded-2xl border border-gray-200 shadow hover:shadow-lg transition-all"
           >
-            <img :src="product.thumbnail" alt="product image" class="w-full h-48 object-cover rounded-xl mb-4" />
-            <h2 class="text-lg font-semibold text-gray-800 truncate">{{ product.title }}</h2>
-            <p class="text-gray-500 text-sm mb-2">{{ product.brand }}</p>
-            <p class="text-green-600 font-bold text-lg mb-2">${{ product.price }}</p>
+            <NuxtLink
+              :to="`/products/${product.id}`"
+              class="block hover:cursor-pointer"
+            >
+              <img :src="product.thumbnail" alt="product image" class="w-full h-48 object-cover rounded-xl mb-4" />
+              <h2 class="text-lg font-semibold text-gray-800 truncate hover:underline">
+                {{ product.title }}
+              </h2>
+              <p class="text-gray-500 text-sm mb-2">{{ product.brand }}</p>
+              <p class="text-green-600 font-bold text-lg mb-2">${{ product.price }}</p>
+            </NuxtLink>
+
             <button
-              @click="addToCart(product)"
+              @click.stop.prevent="addToCart(product)"
               class="mt-auto w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition-all"
             >
               Add to Cart
@@ -76,7 +85,10 @@
           v-for="page in totalPages"
           :key="page"
           @click="goToPage(page)"
-          :class="[ 'px-4 py-2 rounded-lg border', page === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border-gray-300' ]"
+          :class="[
+            'px-4 py-2 rounded-lg border',
+            page === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border-gray-300'
+          ]"
         >
           {{ page }}
         </button>
@@ -94,13 +106,21 @@ const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
 
-// Filters & Pagination state
+// Filters & Pagination
 const filters = ref({
   category: route.query.category ? route.query.category.split(',') : [],
   price: route.query.price ? route.query.price.split(',') : [],
   rating: route.query.rating ? route.query.rating.split(',') : []
 })
-const currentPage = ref(Number(route.query.page) || 1)
+const currentPage = ref(1)
+
+watchEffect(() => {
+  const pageFromRoute = parseInt(route.query.page) || 1
+  if (currentPage.value !== pageFromRoute) {
+    currentPage.value = pageFromRoute
+  }
+})
+
 const searchQuery = ref(route.query.search || '')
 const limit = 9
 const categories = ['furniture', 'laptops', 'fragrances', 'skincare', 'groceries', 'beauty']
@@ -114,10 +134,7 @@ const filteredProducts = computed(() => {
 
   return products.value.products.filter((product) => {
     const matchSearch = !searchQuery.value || product.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-
-    const matchCategory =
-      filters.value.category.length === 0 || filters.value.category.includes(product.category)
-
+    const matchCategory = filters.value.category.length === 0 || filters.value.category.includes(product.category)
     const matchPrice =
       filters.value.price.length === 0 ||
       filters.value.price.some((range) => {
@@ -126,7 +143,6 @@ const filteredProducts = computed(() => {
         if (range === '500-1000') return product.price > 500 && product.price <= 1000
         if (range === 'above-1000') return product.price > 1000
       })
-
     const matchRating =
       filters.value.rating.length === 0 ||
       filters.value.rating.some((rating) => product.rating >= parseInt(rating))
@@ -138,16 +154,25 @@ const filteredProducts = computed(() => {
 const totalPages = computed(() => Math.ceil(filteredProducts.value.length / limit))
 const paginatedProducts = computed(() => {
   const start = (currentPage.value - 1) * limit
-  const end = start + limit
-  return filteredProducts.value.slice(start, end)
+  return filteredProducts.value.slice(start, start + limit)
 })
 
 // Pagination
 function goToPage(page) {
-  currentPage.value = page
+  router.push({
+    path: '/shop',
+    query: {
+      category: filters.value.category.join(','),
+      price: filters.value.price.join(','),
+      rating: filters.value.rating.join(','),
+      page: page.toString(),
+      ...(searchQuery.value && { search: searchQuery.value })
+    }
+  })
 }
 
-// Update route query parameters
+
+// Update route query
 function updateRoute() {
   router.push({
     path: '/shop',
@@ -161,7 +186,7 @@ function updateRoute() {
   })
 }
 
-// Watch filters
+// Watchers
 watch(
   filters,
   () => {
@@ -174,12 +199,8 @@ watch(
   { deep: true }
 )
 
-// Watch currentPage changes and update route
-watch(currentPage, () => {
-  updateRoute()
-})
+watch(currentPage, updateRoute)
 
-// Watch route query to sync with state
 watch(
   () => route.fullPath,
   () => {

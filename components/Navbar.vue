@@ -7,46 +7,95 @@
           Organic<span class="text-green-500">Life</span>
         </NuxtLink>
 
-        <!-- Links -->
-        <div class="hidden md:flex items-center space-x-8">
-          <NuxtLink to="/" class="text-green-800 hover:text-green-600 px-3 py-2 text-sm font-medium">Home</NuxtLink>
-          <NuxtLink to="/shop" class="text-green-800 hover:text-green-600 px-3 py-2 text-sm font-medium">Shop</NuxtLink>
-          <NuxtLink to="/about" class="text-green-800 hover:text-green-600 px-3 py-2 text-sm font-medium">About</NuxtLink>
-          <NuxtLink to="/contact" class="text-green-800 hover:text-green-600 px-3 py-2 text-sm font-medium">Contact</NuxtLink>
-        </div>
-
-        <!-- Search and Cart -->
+        <!-- Desktop Links -->
         <div class="hidden md:flex items-center space-x-6">
+          <NuxtLink to="/" class="text-green-800 hover:text-green-600 text-sm font-medium">Home</NuxtLink>
+          <NuxtLink to="/shop" class="text-green-800 hover:text-green-600 text-sm font-medium">Shop</NuxtLink>
+          <NuxtLink to="/about" class="text-green-800 hover:text-green-600 text-sm font-medium">About</NuxtLink>
+          <NuxtLink to="/contact" class="text-green-800 hover:text-green-600 text-sm font-medium">Contact</NuxtLink>
+
           <!-- Search -->
           <div class="relative">
             <input
               v-model="searchQuery"
               @keydown.enter="performSearch"
               type="text"
-              placeholder="Search products..."
-              class="w-64 px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Search..."
+              class="w-56 px-4 py-2 text-sm border rounded-full focus:ring-2 focus:ring-green-500"
             />
-            <button @click="performSearch" class="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="performSearch" class="absolute right-3 top-2 text-gray-500">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
           </div>
 
-          <!-- Cart -->
-          <NuxtLink to="/cart" class="relative text-gray-700 hover:text-green-600 p-2">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <span class="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
-              {{ cartCount }}
+          <!-- Cart Icon -->
+          <div class="relative">
+            <NuxtLink
+              v-if="authStore.user"
+              to="/cart"
+              class="relative text-gray-700 hover:text-green-600 p-2 inline-block"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span
+                v-if="cartCount > 0"
+                class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-green-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full"
+              >
+                {{ cartCount }}
+              </span>
+            </NuxtLink>
+
+            <!-- Disabled cart for guests -->
+            <div
+              v-else
+              class="relative text-gray-300 cursor-not-allowed p-2"
+              title="Login to view cart"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Auth Section -->
+          <div class="flex items-center space-x-3">
+            <span v-if="authStore.user" class="text-green-800 text-sm font-medium">
+              Welcome, {{ authStore.user.name }}
             </span>
-          </NuxtLink>
+
+            <button
+              v-if="authStore.user"
+              @click="logout"
+              class="text-sm bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200"
+            >
+              Logout
+            </button>
+
+            <NuxtLink
+              v-else
+              to="/login"
+              class="text-sm bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700"
+            >
+              Login
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="!authStore.user"
+              to="/signup"
+              class="text-sm border border-green-600 text-green-600 px-4 py-1.5 rounded hover:bg-green-100"
+            >
+              Sign Up
+            </NuxtLink>
+          </div>
         </div>
 
-        <!-- Mobile Menu Toggle -->
+        <!-- Mobile Toggle -->
         <div class="md:hidden flex items-center">
           <button @click="mobileMenu = !mobileMenu" class="text-gray-700 hover:text-green-600 p-2">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,11 +111,41 @@
 
     <!-- Mobile Menu -->
     <div v-show="mobileMenu" class="md:hidden bg-white border-t border-gray-200">
-      <div class="px-2 pt-2 pb-3 space-y-1">
-        <NuxtLink to="/" class="block px-3 py-2 text-base text-green-800 hover:text-green-600">Home</NuxtLink>
-        <NuxtLink to="/shop" class="block px-3 py-2 text-base text-green-800 hover:text-green-600">Shop</NuxtLink>
-        <NuxtLink to="/about" class="block px-3 py-2 text-base text-green-800 hover:text-green-600">About</NuxtLink>
-        <NuxtLink to="/contact" class="block px-3 py-2 text-base text-green-800 hover:text-green-600">Contact</NuxtLink>
+      <div class="px-4 py-3 space-y-2">
+        <NuxtLink to="/" class="block text-green-800 hover:text-green-600">Home</NuxtLink>
+        <NuxtLink to="/shop" class="block text-green-800 hover:text-green-600">Shop</NuxtLink>
+        <NuxtLink to="/about" class="block text-green-800 hover:text-green-600">About</NuxtLink>
+        <NuxtLink to="/contact" class="block text-green-800 hover:text-green-600">Contact</NuxtLink>
+
+        <NuxtLink
+          v-if="authStore.user"
+          to="/cart"
+          class="block text-green-800 hover:text-green-600"
+        >
+          Cart
+        </NuxtLink>
+
+        <div class="border-t pt-2">
+          <span
+            v-if="authStore.user"
+            class="block text-green-800"
+          >
+            Welcome, {{ authStore.user.name }}
+          </span>
+
+          <button
+            v-if="authStore.user"
+            @click="logout"
+            class="mt-1 block w-full text-left text-red-600 hover:bg-red-100 px-3 py-1 rounded"
+          >
+            Logout
+          </button>
+
+          <div v-else class="flex gap-3 mt-2">
+            <NuxtLink to="/login" class="text-green-600">Login</NuxtLink>
+            <NuxtLink to="/signup" class="text-green-600">Signup</NuxtLink>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
@@ -75,32 +154,38 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/store/auth'
 import { useCartStore } from '@/store/cart'
 
 const mobileMenu = ref(false)
-const cartStore = useCartStore()
-const cartCount = computed(() => cartStore.cartCount)
-
+const searchQuery = ref('')
 const router = useRouter()
 const route = useRoute()
-const searchQuery = ref(route.query.search || '')
+
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+
+const cartCount = computed(() => cartStore.cartCount)
 
 function performSearch() {
   const trimmed = searchQuery.value.trim()
-
   router.push({
     path: '/shop',
     query: {
       ...route.query,
-      ...(trimmed ? { search: trimmed } : {}) // add `search` only if not empty
+      ...(trimmed ? { search: trimmed } : {})
     }
   })
 
-  // if search is empty, remove it from the query
   if (!trimmed && route.query.search) {
     const updatedQuery = { ...route.query }
     delete updatedQuery.search
     router.push({ path: '/shop', query: updatedQuery })
   }
+}
+
+function logout() {
+  authStore.logout()
+  router.push('/login')
 }
 </script>
