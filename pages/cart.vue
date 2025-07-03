@@ -4,9 +4,17 @@
 
     <!-- Cart Items -->
     <div v-if="cartItems.length && !showCheckout" class="space-y-6">
-      <div v-for="item in cartItems" :key="item.id" class="flex justify-between items-center p-4 border rounded-lg">
+      <div
+        v-for="item in cartItems"
+        :key="item.id"
+        class="flex justify-between items-center p-4 border rounded-lg"
+      >
         <div class="flex items-center space-x-4">
-          <img :src="item.thumbnail" alt="product image" class="w-16 h-16 object-cover rounded-lg" />
+          <img
+            :src="item.thumbnail"
+            alt="product image"
+            class="w-16 h-16 object-cover rounded-lg"
+          />
           <div>
             <h2 class="font-semibold">{{ item.title }}</h2>
             <p class="text-gray-500 text-sm">{{ item.brand }}</p>
@@ -30,7 +38,10 @@
     <!-- Total and Checkout Button -->
     <div v-if="cartItems.length && !showCheckout" class="mt-6 text-right">
       <p class="text-lg font-bold">Total: ${{ totalPrice.toFixed(2) }}</p>
-      <button @click="showCheckout = true" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition mt-4">
+      <button
+        @click="showCheckout = true"
+        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 mt-4"
+      >
         Proceed to Checkout
       </button>
     </div>
@@ -39,12 +50,25 @@
     <div v-if="showCheckout" class="max-w-xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg space-y-4">
       <h2 class="text-2xl font-bold mb-4">Checkout</h2>
 
-      <input v-model="form.name" type="text" placeholder="Full Name" class="w-full border px-4 py-2 rounded" />
-      <input v-model="form.email" type="email" placeholder="Email" class="w-full border px-4 py-2 rounded" />
-      <input v-model="form.address" type="text" placeholder="Shipping Address" class="w-full border px-4 py-2 rounded" />
+      <input
+        v-model="form.address"
+        type="text"
+        placeholder="Shipping Address"
+        class="w-full border px-4 py-2 rounded"
+      />
       <div class="flex gap-4">
-        <input v-model="form.city" type="text" placeholder="City" class="w-full border px-4 py-2 rounded" />
-        <input v-model="form.zip" type="text" placeholder="ZIP Code" class="w-full border px-4 py-2 rounded" />
+        <input
+          v-model="form.city"
+          type="text"
+          placeholder="City"
+          class="w-full border px-4 py-2 rounded"
+        />
+        <input
+          v-model="form.zip"
+          type="text"
+          placeholder="ZIP Code"
+          class="w-full border px-4 py-2 rounded"
+        />
       </div>
 
       <!-- Payment Method -->
@@ -62,24 +86,45 @@
         </div>
       </div>
 
-      <!-- Card Details (conditionally shown) -->
+      <!-- Card Details (only if selected) -->
       <div v-if="form.paymentMethod === 'card'" class="mt-4 space-y-2">
-        <input v-model="form.cardNumber" type="text" placeholder="Card Number" class="w-full border px-4 py-2 rounded" />
+        <input
+          v-model="form.cardNumber"
+          type="text"
+          placeholder="Card Number"
+          class="w-full border px-4 py-2 rounded"
+        />
         <div class="flex gap-4">
-          <input v-model="form.expiry" type="text" placeholder="MM/YY" class="w-full border px-4 py-2 rounded" />
-          <input v-model="form.cvc" type="text" placeholder="CVC" class="w-full border px-4 py-2 rounded" />
+          <input
+            v-model="form.expiry"
+            type="text"
+            placeholder="MM/YY"
+            class="w-full border px-4 py-2 rounded"
+          />
+          <input
+            v-model="form.cvc"
+            type="text"
+            placeholder="CVC"
+            class="w-full border px-4 py-2 rounded"
+          />
         </div>
       </div>
 
       <p class="text-right font-bold mt-2">Total: ${{ totalPrice.toFixed(2) }}</p>
 
       <!-- Submit Order -->
-      <button @click="placeOrder" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+      <button
+        @click="placeOrder"
+        class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+      >
         Place Order
       </button>
 
       <!-- Success Message -->
-      <div v-if="orderPlaced" class="mt-4 text-green-600 font-semibold text-center">
+      <div
+        v-if="orderPlaced"
+        class="mt-4 text-green-600 font-semibold text-center"
+      >
         ✅ Your order has been placed successfully!
       </div>
     </div>
@@ -89,23 +134,18 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useCartStore } from '@/store/cart'
+import { useAuthStore } from '@/store/auth'
 
-// Cart store logic
 const cartStore = useCartStore()
+const authStore = useAuthStore()
+
 const cartItems = computed(() => cartStore.cart)
 const totalPrice = computed(() => cartStore.totalPrice)
 
-const increaseQuantity = (id) => cartStore.addToCart(cartItems.value.find(item => item.id === id))
-const decreaseQuantity = (id) => cartStore.decreaseQuantity(id)
-const removeFromCart = (id) => cartStore.removeFromCart(id)
-
-// Checkout form states
 const showCheckout = ref(false)
 const orderPlaced = ref(false)
 
 const form = ref({
-  name: '',
-  email: '',
   address: '',
   city: '',
   zip: '',
@@ -115,41 +155,64 @@ const form = ref({
   cvc: ''
 })
 
-// Basic form validation
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+// Quantity handlers
+const increaseQuantity = (id) => cartStore.addToCart(cartItems.value.find(i => i.id === id))
+const decreaseQuantity = (id) => cartStore.decreaseQuantity(id)
+const removeFromCart = (id) => cartStore.removeFromCart(id)
+
+// Validation
+function isValidForm() {
+  const { address, city, zip, paymentMethod, cardNumber, expiry, cvc } = form.value
+
+  if (!address || !city || !zip) return false
+
+  if (paymentMethod === 'card') {
+    return (
+      /^\d{16}$/.test(cardNumber) &&
+      /^\d{3}$/.test(cvc) &&
+      expiry.trim() !== ''
+    )
+  }
+
+  return true
 }
 
-function placeOrder() {
-  const { name, email, address, city, zip, paymentMethod, cardNumber, expiry, cvc } = form.value
+// Place Order Handler
+async function placeOrder() {
+  if (!authStore.user) {
+    alert('You must be logged in to place an order.')
+    return
+  }
 
-  // Basic validation
-  if (!name || !email || !address || !city || !zip || !paymentMethod) {
+  if (!isValidForm()) {
     alert('Please fill in all required fields.')
     return
   }
 
-  if (!isValidEmail(email)) {
-    alert('Please enter a valid email address.')
+  const orderData = {
+    email: authStore.user.email,
+    items: cartItems.value.map(item => ({
+      productId: item.id,
+      title: item.title,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.thumbnail
+    })),
+    total: totalPrice.value,
+    address: `${form.value.address}, ${form.value.city}, ${form.value.zip}`,
+    paymentMethod: form.value.paymentMethod
+  }
+
+  const { error } = await useFetch('/api/orders/place', {
+    method: 'POST',
+    body: orderData
+  })
+
+  if (error.value) {
+    alert('Failed to place order.')
     return
   }
 
-  if (paymentMethod === 'card') {
-    if (!cardNumber || !expiry || !cvc) {
-      alert('Please fill in all card details.')
-      return
-    }
-    if (!/^\d{16}$/.test(cardNumber)) {
-      alert('Card number must be 16 digits.')
-      return
-    }
-    if (!/^\d{3}$/.test(cvc)) {
-      alert('CVC must be 3 digits.')
-      return
-    }
-  }
-
-  // Simulate order placement
   orderPlaced.value = true
   cartStore.clearCart()
 }
