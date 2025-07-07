@@ -65,17 +65,37 @@
 
           <!-- Auth Section -->
           <div class="flex items-center space-x-3">
-            <span v-if="authStore.user" class="text-green-800 text-sm font-medium">
-              Welcome, {{ authStore.user.name }}
-            </span>
+           <div v-if="authStore.user" class="relative group">
+  <button class="text-green-800 text-sm font-medium">
+    Welcome, {{ authStore.user.name }}
+  </button>
+  <!-- Dropdown -->
+  <div
+    class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition duration-200 z-50"
+  >
+    <NuxtLink
+      to="/my-orders"
+      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+    >
+      My Orders
+    </NuxtLink>
+    <button
+      @click="logout"
+      class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100"
+    >
+      Logout
+    </button>
+  </div>
+</div>
 
-            <button
+
+            <!-- <button
               v-if="authStore.user"
               @click="logout"
               class="text-sm bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200"
             >
               Logout
-            </button>
+            </button> -->
 
             <NuxtLink
               v-else
