@@ -10,11 +10,7 @@
         class="flex justify-between items-center p-4 border rounded-lg"
       >
         <div class="flex items-center space-x-4">
-          <img
-            :src="item.thumbnail"
-            alt="product image"
-            class="w-16 h-16 object-cover rounded-lg"
-          />
+          <img :src="item.thumbnail" alt="product image" class="w-16 h-16 object-cover rounded-lg" />
           <div>
             <h2 class="font-semibold">{{ item.title }}</h2>
             <p class="text-gray-500 text-sm">{{ item.brand }}</p>
@@ -30,12 +26,12 @@
       </div>
     </div>
 
-    <!-- No items in cart -->
+    <!-- Empty Cart -->
     <div v-else-if="!cartItems.length && !showCheckout">
       <p>Your cart is empty.</p>
     </div>
 
-    <!-- Total and Checkout Button -->
+    <!-- Total and Proceed to Checkout -->
     <div v-if="cartItems.length && !showCheckout" class="mt-6 text-right">
       <p class="text-lg font-bold">Total: ${{ totalPrice.toFixed(2) }}</p>
       <button
@@ -50,25 +46,10 @@
     <div v-if="showCheckout" class="max-w-xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg space-y-4">
       <h2 class="text-2xl font-bold mb-4">Checkout</h2>
 
-      <input
-        v-model="form.address"
-        type="text"
-        placeholder="Shipping Address"
-        class="w-full border px-4 py-2 rounded"
-      />
+      <input v-model="form.address" type="text" placeholder="Shipping Address" class="w-full border px-4 py-2 rounded" />
       <div class="flex gap-4">
-        <input
-          v-model="form.city"
-          type="text"
-          placeholder="City"
-          class="w-full border px-4 py-2 rounded"
-        />
-        <input
-          v-model="form.zip"
-          type="text"
-          placeholder="ZIP Code"
-          class="w-full border px-4 py-2 rounded"
-        />
+        <input v-model="form.city" type="text" placeholder="City" class="w-full border px-4 py-2 rounded" />
+        <input v-model="form.zip" type="text" placeholder="ZIP Code" class="w-full border px-4 py-2 rounded" />
       </div>
 
       <!-- Payment Method -->
@@ -86,45 +67,23 @@
         </div>
       </div>
 
-      <!-- Card Details (only if selected) -->
+      <!-- Card Info -->
       <div v-if="form.paymentMethod === 'card'" class="mt-4 space-y-2">
-        <input
-          v-model="form.cardNumber"
-          type="text"
-          placeholder="Card Number"
-          class="w-full border px-4 py-2 rounded"
-        />
+        <input v-model="form.cardNumber" type="text" placeholder="Card Number" class="w-full border px-4 py-2 rounded" />
         <div class="flex gap-4">
-          <input
-            v-model="form.expiry"
-            type="text"
-            placeholder="MM/YY"
-            class="w-full border px-4 py-2 rounded"
-          />
-          <input
-            v-model="form.cvc"
-            type="text"
-            placeholder="CVC"
-            class="w-full border px-4 py-2 rounded"
-          />
+          <input v-model="form.expiry" type="text" placeholder="MM/YY" class="w-full border px-4 py-2 rounded" />
+          <input v-model="form.cvc" type="text" placeholder="CVC" class="w-full border px-4 py-2 rounded" />
         </div>
       </div>
 
       <p class="text-right font-bold mt-2">Total: ${{ totalPrice.toFixed(2) }}</p>
 
-      <!-- Submit Order -->
-      <button
-        @click="placeOrder"
-        class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
-      >
+      <button @click="placeOrder" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
         Place Order
       </button>
 
       <!-- Success Message -->
-      <div
-        v-if="orderPlaced"
-        class="mt-4 text-green-600 font-semibold text-center"
-      >
+      <div v-if="orderPlaced" class="mt-4 text-green-600 font-semibold text-center">
         ✅ Your order has been placed successfully!
       </div>
     </div>
@@ -133,9 +92,11 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCartStore } from '@/store/cart'
 import { useAuthStore } from '@/store/auth'
 
+const router = useRouter()
 const cartStore = useCartStore()
 const authStore = useAuthStore()
 
@@ -155,15 +116,14 @@ const form = ref({
   cvc: ''
 })
 
-// Quantity handlers
+// Cart functions
 const increaseQuantity = (id) => cartStore.addToCart(cartItems.value.find(i => i.id === id))
 const decreaseQuantity = (id) => cartStore.decreaseQuantity(id)
 const removeFromCart = (id) => cartStore.removeFromCart(id)
 
-// Validation
+// Validate form
 function isValidForm() {
   const { address, city, zip, paymentMethod, cardNumber, expiry, cvc } = form.value
-
   if (!address || !city || !zip) return false
 
   if (paymentMethod === 'card') {
@@ -177,7 +137,7 @@ function isValidForm() {
   return true
 }
 
-// Place Order Handler
+// ✅ Place Order
 async function placeOrder() {
   if (!authStore.user) {
     alert('You must be logged in to place an order.')
@@ -203,17 +163,22 @@ async function placeOrder() {
     paymentMethod: form.value.paymentMethod
   }
 
-  const { error } = await useFetch('/api/orders/place', {
+  const { data, error } = await useFetch('/api/orders/place', {
     method: 'POST',
     body: orderData
   })
 
-  if (error.value) {
+  if (error.value || !data.value?.orderId) {
     alert('Failed to place order.')
     return
   }
 
+  const newOrderId = data.value.orderId
+
   orderPlaced.value = true
   cartStore.clearCart()
+
+  // ✅ Redirect to Thank You Page
+  router.push(`/users/${authStore.user.email}/orders/${newOrderId}`)
 }
 </script>

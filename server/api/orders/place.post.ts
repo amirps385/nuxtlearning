@@ -25,8 +25,16 @@ export default defineEventHandler(async (event) => {
     createdAt: new Date()
   }
 
+  // Push order and get reference to newly created order
   user.orders.push(newOrder)
-  await user.save()
+  const savedUser = await user.save()
 
-  return { message: 'Order placed successfully' }
+  // ✅ Get the last inserted order's _id
+  const insertedOrder = savedUser.orders[savedUser.orders.length - 1]
+  const orderId = insertedOrder._id.toString()
+
+  return {
+    message: 'Order placed successfully',
+    orderId // ✅ this will be used in redirect
+  }
 })
