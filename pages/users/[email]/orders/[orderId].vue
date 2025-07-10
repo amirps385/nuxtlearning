@@ -1,11 +1,13 @@
 <template>
   <div class="max-w-3xl mx-auto p-6 mt-5">
-    <h1 class="text-3xl font-bold text-green-600 mb-4"> Thank you for your order, {{ email }}!</h1>
+    <h1 class="text-3xl font-bold text-green-600 mb-4">
+      Thank you for your order, {{ email }}!
+    </h1>
 
     <div v-if="order">
       <p class="text-lg mb-2">Here’s a summary of your order:</p>
 
-      <div class="border p-4 rounded shadow mb-6">
+      <div class="border p-4 rounded shadow mb-6 bg-white">
         <p><strong>Order ID:</strong> {{ orderId }}</p>
         <p><strong>Total:</strong> ${{ order.total }}</p>
         <p><strong>Payment Method:</strong> {{ order.paymentMethod }}</p>
@@ -18,7 +20,7 @@
         <div
           v-for="item in order.items"
           :key="item.productId"
-          class="flex items-center border rounded p-4 gap-4"
+          class="flex items-center border rounded p-4 gap-4 bg-white"
         >
           <img :src="item.image" alt="item image" class="w-16 h-16 object-cover rounded" />
           <div>
@@ -29,13 +31,17 @@
       </div>
     </div>
 
-    <div v-else class="text-red-500 font-semibold">
+    <div v-else class="text-red-500 font-semibold mt-4">
       ❌ Order not found.
     </div>
   </div>
 </template>
 
 <script setup>
+definePageMeta({
+  layout: 'order-summary'
+})
+
 import { useRoute } from 'vue-router'
 import { ref, onMounted } from 'vue'
 
